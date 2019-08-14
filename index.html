@@ -1,0 +1,314 @@
+<!--
+Copyright (c) 2018  Christian Berger <christian.berger@gu.se>
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+-->
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- Load libcluon. -->
+        <script src="libcluon.js"></script>
+	<!--CSS styling --> 
+	<!--changed left with 200-->
+	<style>
+	.title { position: relative; top: 10px; left: 830px;}
+	.background { position: relative; top: 0px; left: 90px;}
+	.jost { position: absolute; top: 35px; left: 212px;}
+	.on { position: absolute; top: 65px; left: 740px;}
+	.coupling { position: absolute; top: 280px; left: 260px;}	
+	.decoupling { position: absolute; top: 270px; left: 480px;}
+	.open { position: absolute; top: 260px; left: 740px;}
+	.platesensor { position: absolute; top: 470px; left: 260px;}
+	.check { position: absolute; top: 470px; left: 480px;}
+	.ok { position: absolute; top: 480px; left: 740px;}
+	.legsup { position: absolute; top: 670px; left: 250px;}
+	.legsdown { position: absolute; top: 690px; left: 490px;}
+	.stop { position: absolute; top: 675px; left: 740px;}
+	.text { position: absolute; top: 190px; left: 400px;}
+/*	.timetext { position: absolute; top: 250px; left: 400px;}
+	.time { position: absolute; top: 340px; left: 590px;}*/
+	.rlogo { position: absolute; top: 900px; left: 1200px;}
+	.vlogo { position: absolute; top: 900px; left: 1550px;}
+	.jlogo { position: absolute; top: 900px; left: 2100px;}
+
+  .transbox {
+    position: absolute; 
+    top: 130px; 
+    left: 1150px;
+    width: 1200px;
+    height: 500px;
+    padding: 20px;
+    border: 10px solid black;
+  }
+	</style>
+    </head>
+<body>
+
+<script>
+    // "Instantiate" libcluon.
+    var __libcluon = libcluon();
+    // Function to load data from a remote destination.
+    function getResourceFrom(url) {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open("GET", url, false /*asynchronous request*/);
+        xmlHttp.send(null);
+        return xmlHttp.responseText;
+    }
+    // Check for availability of WebSockets.
+    if ("WebSocket" in window) {
+        // Read data in binary from the WebSocket, channel "od4".
+        var ws = new WebSocket("ws://" + window.location.host + "/", "od4");
+        ws.binaryType = 'arraybuffer';
+        ws.onopen = function() {
+            console.log("Connected.");
+            // Load the ODVD message specification file to have information about the messages to decode and encode.
+            var odvdMessageSpecificationFile = getResourceFrom("opendlv-standard-message-set-v0.9.7.odvd");
+            console.log("Loaded " + __libcluon.setMessageSpecification(odvdMessageSpecificationFile) + " messages from specification.");
+        };
+        ws.onmessage = function(evt) {
+            // Got new data from the WebSocket; now, try to decode it into JSON using the supplied message specification file.
+            var data = JSON.parse(__libcluon.decodeEnvelopeToJSON(evt.data));
+            console.log(data);
+	//	var redleg= 2;
+//		var yellowleg= 0;
+		var greencoupling = 2;
+		var redcoupling = 0;
+//		var redlegdown = 2;
+//		var yellowlegdown = 0;
+
+		if(data.dataType == 1040){
+ //Code for changing the pictures
+			if(data.senderStamp == 1){
+				if(data.opendlv_proxy_SwitchStateReading.state ==1){
+					document.getElementById("Jost").src="images/jost_y.JPG";
+					
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+					document.getElementById("Jost").src="images/jost_w.JPG";
+				}
+			}
+			if(data.senderStamp == 3){
+				if(data.opendlv_proxy_SwitchStateReading.state == 1){
+					document.getElementById("On").src="images/on_y.JPG";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+					document.getElementById("On").src="images/on_w.JPG";
+				}
+			}
+			if(data.senderStamp == 4){ 
+				if(data.opendlv_proxy_SwitchStateReading.state == 1){
+				greencoupling = 1;
+					document.getElementById("Coupling").src="images/coupling_g.JPG";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+					greencoupling = 0;
+					var test = redcoupling+greencoupling;
+					if (test === 0){
+					document.getElementById("Coupling").src="images/coupling_w.JPG";
+					}
+				}
+			}
+			if(data.senderStamp == 5){
+				if(data.opendlv_proxy_SwitchStateReading.state == 1){
+					redcoupling = 1;
+					document.getElementById("Coupling").src="images/coupling_r.JPG";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+					redcoupling = 0;
+					var test = redcoupling+greencoupling;
+					if ( test === 0){
+					document.getElementById("Coupling").src="images/coupling_w.JPG";
+					}
+				}
+			}
+			if(data.senderStamp == 6){
+				if(data.opendlv_proxy_SwitchStateReading.state == 1){
+					document.getElementById("Decoupling").src="images/decoupling_r.JPG";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+					document.getElementById("Decoupling").src="images/decoupling_w.JPG";
+				}
+			}
+			if(data.senderStamp == 7){
+				if(data.opendlv_proxy_SwitchStateReading.state == 1){
+					document.getElementById("Open").src="images/open_y.JPG";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+					document.getElementById("Open").src="images/open_w.JPG";
+				}
+			}
+			if(data.senderStamp == 8){
+				if(data.opendlv_proxy_SwitchStateReading.state == 1){
+					document.getElementById("PlateSensor").src="images/plate_sensor_y.JPG";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+					document.getElementById("PlateSensor").src="images/plate_sensor_w.JPG";
+				}
+			}
+			if(data.senderStamp == 9){
+				if(data.opendlv_proxy_SwitchStateReading.state == 1){
+					document.getElementById("Check").src="images/check_y.JPG";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+					document.getElementById("Check").src="images/check_w.JPG";
+				}
+			}
+			if(data.senderStamp == 10){
+				if(data.opendlv_proxy_SwitchStateReading.state == 1){
+					document.getElementById("Ok").src="images/ok_y.JPG";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+					document.getElementById("Ok").src="images/ok_w.JPG";
+				}
+			}
+
+			if(data.senderStamp == 11){
+				if(data.opendlv_proxy_SwitchStateReading.state == 1){
+	//				yellowleg = 1;
+					document.getElementById("LegsUp").src="images/legs_up_y.JPG";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+	//				yellowleg = 0;
+	//				var test = redleg+yellowleg;
+	//				if(test === 0){
+					document.getElementById("LegsUp").src="images/legs_up_w.JPG";
+	//				}
+				}
+			}
+/*			if(data.senderStamp == 12){
+				if(data.opendlv_proxy_SwitchStateReading.state == 1){
+	//				redleg = 1;
+					document.getElementById("LegsUp").src="images/legs_up_r.JPG";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+	//				redleg = 0;
+	//				var test = redleg +yellowleg;
+					if( test === 0){
+					document.getElementById("LegsUp").src="images/legs_up_w.JPG";
+					}
+				}
+
+			}*/
+			if(data.senderStamp == 13){
+				if(data.opendlv_proxy_SwitchStateReading.state == 1){
+	//				yellowlegdown= 1;
+					document.getElementById("LegsDown").src="images/legs_down_y.JPG";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+	//				yellowlegdown= 0;
+	//				var test = yellowlegdown+redlegdown;
+	//				if(test === 0){
+					document.getElementById("LegsDown").src="images/legs_down_w.JPG";	
+	//				}
+				}
+			}
+/*			if(data.senderStamp == 14){
+				if(data.opendlv_proxy_SwitchStateReading.state == 1){
+			//		redlegdown = 1;
+					document.getElementById("LegsDown").src="images/legs_down_r.JPG";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+			//		redlegdown = 0;
+			//		var test = redlegdown+yellowlegdown;
+			//		if(test === 0){
+					document.getElementById("LegsDown").src="images/legs_down_w.JPG"; }
+			//	}
+			}*/
+			if(data.senderStamp == 15){
+				if(data.opendlv_proxy_SwitchStateReading.state == 1){
+					document.getElementById("Stop").src="images/stop_r.JPG";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+					document.getElementById("Stop").src="images/stop_w.JPG";
+				}
+			}
+			if(data.senderStamp == 25){
+				if(data.opendlv_proxy_SwitchStateReading.state == 0){
+					document.getElementById("Text").innerHTML="No Activity";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 1){
+					document.getElementById("Text").innerHTML="Release ParkingBrake";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 2){
+					document.getElementById("Text").innerHTML="Reverse Drive";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 3){
+					document.getElementById("Text").innerHTML="Forward Drive";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 4){
+					document.getElementById("Text").innerHTML="Stop Drive";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 5){
+					document.getElementById("Text").innerHTML="Rise Level Drive";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 6){
+					document.getElementById("Text").innerHTML="Fall level Drive";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 7){
+					document.getElementById("Text").innerHTML="Drive Level Drive";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 8){
+					document.getElementById("Text").innerHTML="Apply Parkingbrake";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 9){
+					document.getElementById("Text").innerHTML="Coupling KKS";
+				}
+				if(data.opendlv_proxy_SwitchStateReading.state == 10){
+					document.getElementById("Text").innerHTML="Decoupling KKS";
+				}
+			}
+
+/*			if(data.senderStamp == 26){
+				document.getElementById("Time").innerHTML=data.opendlv_proxy_SwitchStateReading.state;
+
+				}*/
+		};
+     
+        ws.onclose = function() {
+            console.log("Connection is closed.");
+        };
+	}
+};
+
+	
+</script>
+	<h1 class="title" style=font-size:75px> Tractor-Trailer Auto-Coupling </h1>
+<div style="position: relative; left: 0; top: 0;">
+	<img id="Background" class="background" src="images/background.JPG" style=size:”height:790.4px;width:943.1px;>
+	<img id="Jost" class="jost" src="images/jost_w.JPG" style=size:”height:231.5px;width:467.8px; >
+	<img id="On" class="on" src="images/on_w.JPG" style=size:”height:106.6px;width:107.9px;>
+	<img id="Decoupling" class="decoupling" src="images/decoupling_w.JPG" style=size:”height:120.9px;width:119.6px;>
+	<img id="Coupling" class="coupling" src="images/coupling_w.JPG" style=size:”height:109.2px;width:118.3px>
+	<img id="Open" class="open" src="images/open_w.JPG" style=size:”height:133.9px;width:130px>
+	<img id="PlateSensor" class="platesensor" src="images/plate_sensor_w.JPG" style=size:”height:110.5px;width:153.4px>
+	<img id="Check" class="check" src="images/check_w.JPG" style=size:”height:111.8px;width:144.36px>
+	<img id="Ok" class="ok" src="images/ok_w.JPG" style=size:”height:106.6px;width:131.3px>
+	<img id="LegsUp" class="legsup" src="images/legs_up_w.JPG" style=size:”height:118.3px;width:131.3px>
+	<img id="LegsDown" class="legsdown" src="images/legs_down_w.JPG" style=size:”height:109.2px;width:132.5px>
+	<img id="Stop" class="stop" src="images/stop_w.JPG" style=size:”height:131.3px;width:158.6px>
+<div class="transbox" style=size:”height:106.6px;width:131.3p>
+	<h1 style="font-size:85px" style="text-align:center" id="Text" class="text">Welcome!</h1>
+<!--	<h1 id="Time Text" class="timetext">The Time this sequence takes:</h1>
+	<h2 id="Time" class="time">Hej</h2> -->
+</div>
+	<img class="rlogo" src="images/Revlogga.png">	
+	<img class="vlogo" src="images/volvoab.png">	
+	<img class="jlogo" src="images/jostlogo.png">
+</div>
+
+</body>
+</html>
