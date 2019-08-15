@@ -1,4 +1,4 @@
-# cluon-javascript-js
+# opendlv-ui-coupling-jost
 This project contains the code for display the JOST panel in the Rhino truck on a local webpage. 
 
 ## Table of Contents
